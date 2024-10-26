@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Número único para cada usuario</title>
+    <script>
+        async function elegirNumeroEspecifico() {
+            const numero = parseInt(document.getElementById("numero").value);
+
+            if (isNaN(numero)) {
+                alert("Por favor, ingresa un número válido.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/elegir-numero?numero=${numero}`);
+                const data = await response.json();
+                if (data.error) {
+                    const retry = confirm(`${data.error} ¿Quieres elegir otro número específico o recibir uno aleatorio?`);
+                    if (retry) {
+                        // Opción para elegir un nuevo número específico
+                        const nuevoNumero = parseInt(prompt("Ingresa un nuevo número específico:"));
+                        if (!isNaN(nuevoNumero)) {
+                            document.getElementById("numero").value = nuevoNumero;
+                            elegirNumeroEspecifico(); // Intenta de nuevo con el nuevo número
+                        } else {
+                            // Si no se ingresa un número específico, ofrecer un número aleatorio
+                            obtenerNumeroAleatorio();
+                        }
+                    }
+                } else {
+                    document.getElementById("resultado").textContent = data.mensaje;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        async function obtenerNumeroAleatorio() {
+            const min = parseInt(document.getElementById("min").value);
+            const max = parseInt(document.getElementById("max").value);
+
+            if (isNaN(min) || isNaN(max) || min >= max) {
+                alert("Por favor, ingresa un rango válido.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/obtener-numero-aleatorio?min=${min}&max=${max}`);
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById("resultado").textContent = "Número asignado: " + data.numero;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Asignar un número único</h1>
+    <p>Ingresa un rango y elige una de las siguientes opciones:</p>
+    <label for="min">Mínimo:</label>
+    <input type="number" id="min" placeholder="Ej: 0">
+    <label for="max">Máximo:</label>
+    <input type="number" id="max" placeholder="Ej: 1000">
+    <br><br>
+
+    <label for="numero">Elige un número específico:</label>
+    <input type="number" id="numero" placeholder="Ej: 25">
+    <button onclick="elegirNumeroEspecifico()">Elegir Número</button>
+    <br><br>
+
+    <button onclick="obtenerNumeroAleatorio()">Obtener Número Aleatorio</button>
+
+    <p id="resultado"></p>
+</body>
+</html>
